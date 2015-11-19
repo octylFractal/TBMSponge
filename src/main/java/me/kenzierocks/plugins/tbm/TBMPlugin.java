@@ -44,10 +44,20 @@ public class TBMPlugin {
     @Inject
     private Game game;
 
+    public Logger getLogger() {
+        return this.logger;
+    }
+
+    public Game getGame() {
+        return this.game;
+    }
+
     @Listener
     public void onGamePreInitilization(GamePreInitializationEvent event) {
         this.logger.info("Loading " + NAME + " v" + VERSION);
         this.logger.info("Loaded " + NAME + " v" + VERSION);
+        this.game.getEventManager().registerListeners(this,
+                new DisplacementHandler(this));
     }
 
 }
