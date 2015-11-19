@@ -41,6 +41,8 @@ configure([compileJava, compileTestJava]) {
     options.compilerArgs += ['-Xlint:all', '-Xlint:-path']
     options.deprecation = true
     options.encoding = 'UTF-8'
+    options.incremental = true
+    options.fork = true
 }
 
 license {
@@ -61,3 +63,20 @@ license {
 javadoc {
     options.addStringOption('Xdoclint:none', '-quiet')
 }
+
+// tokens
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task detokenizeSource(type: Copy) {
+    from 'src/main/java'
+    into 'build/detokenizedSource'
+    inputs.property 'version', project.version.toString()
+    filter(ReplaceTokens, tokens: [
+        'ID': project.id.toString(),
+        'NAME': project.name.toString(),
+        'VERSION': project.version.toString()
+    ])
+}
+
+compileJava.dependsOn(detokenizeSource)
+compileJava.source = fileTree(dir: 'build/detokenizedSource')
