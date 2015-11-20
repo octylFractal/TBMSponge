@@ -38,11 +38,20 @@ public class TBMPlugin {
     public static final String ID = "@ID@";
     public static final String NAME = "@NAME@";
     public static final String VERSION = "@VERSION@";
+    private static TBMPlugin INSTANCE;
+
+    public static TBMPlugin getInstance() {
+        return INSTANCE;
+    }
 
     @Inject
     private Logger logger;
     @Inject
     private Game game;
+
+    {
+        INSTANCE = this;
+    }
 
     public Logger getLogger() {
         return this.logger;
@@ -57,7 +66,7 @@ public class TBMPlugin {
         this.logger.info("Loading " + NAME + " v" + VERSION);
         this.logger.info("Loaded " + NAME + " v" + VERSION);
         this.game.getEventManager().registerListeners(this,
-                new DisplacementHandler(this));
+                new EventHandler(this));
     }
 
 }
