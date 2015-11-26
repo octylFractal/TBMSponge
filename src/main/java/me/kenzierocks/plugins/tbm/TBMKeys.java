@@ -20,44 +20,46 @@ import org.spongepowered.api.data.manipulator.DataManipulatorBuilder;
 import org.spongepowered.api.data.manipulator.ImmutableDataManipulator;
 import org.spongepowered.api.data.merge.MergeFunction;
 import org.spongepowered.api.data.value.BaseValue;
+import org.spongepowered.api.data.value.ValueFactory;
 import org.spongepowered.api.data.value.immutable.ImmutableValue;
 import org.spongepowered.api.data.value.mutable.Value;
 import org.spongepowered.api.service.persistence.InvalidDataException;
 
 import me.kenzierocks.plugins.tbm.spongeabc.DataUtil;
-import me.kenzierocks.plugins.tbm.spongeabc.ImmutableDataCachingUtil;
-import me.kenzierocks.plugins.tbm.spongeabc.SpongeValue;
 
 public final class TBMKeys {
 
-    private static final class TBMEntityData
-            implements DataManipulator<TBMEntityData, ImmutableTBMEntityData> {
+    private static final ValueFactory VALUE_FACTORY =
+            TBMPlugin.getInstance().getGame().getRegistry().getValueFactory();
 
-        private Boolean tbmEntity = Boolean.FALSE;
+    public static final class TBMTaggedData
+            implements DataManipulator<TBMTaggedData, ImmutableTBMTaggedData> {
 
-        private TBMEntityData() {
+        private Boolean tbmTagged = Boolean.FALSE;
+
+        private TBMTaggedData() {
             this(Boolean.FALSE);
         }
 
-        private TBMEntityData(Boolean value) {
-            this.tbmEntity = value;
+        private TBMTaggedData(Boolean value) {
+            this.tbmTagged = value;
         }
 
         @Override
-        public int compareTo(TBMEntityData o) {
-            return this.tbmEntity.compareTo(o.tbmEntity);
+        public int compareTo(TBMTaggedData o) {
+            return this.tbmTagged.compareTo(o.tbmTagged);
         }
 
         @Override
         public DataContainer toContainer() {
-            return new MemoryDataContainer().set(IS_TBM_ENTITY, this.tbmEntity);
+            return new MemoryDataContainer().set(TBM_TAGGED, this.tbmTagged);
         }
 
         @SuppressWarnings("unchecked")
         @Override
         public <E> Optional<E> get(Key<? extends BaseValue<E>> key) {
-            if (key.equals(IS_TBM_ENTITY)) {
-                return (Optional<E>) Optional.of(this.tbmEntity);
+            if (key.equals(TBM_TAGGED)) {
+                return (Optional<E>) Optional.of(this.tbmTagged);
             }
             return Optional.empty();
         }
@@ -65,100 +67,115 @@ public final class TBMKeys {
         @SuppressWarnings("unchecked")
         @Override
         public <E, V extends BaseValue<E>> Optional<V> getValue(Key<V> key) {
-            if (key.equals(IS_TBM_ENTITY)) {
-                return (Optional<V>) Optional.of(new SpongeValue<Boolean>(
-                        IS_TBM_ENTITY, false, this.tbmEntity));
+            if (key.equals(TBM_TAGGED)) {
+                return (Optional<V>) Optional.of(VALUE_FACTORY.createValue(
+                        TBM_TAGGED, this.tbmTagged, Boolean.FALSE));
             }
             return Optional.empty();
         }
 
         @Override
         public boolean supports(Key<?> key) {
-            return key.equals(IS_TBM_ENTITY);
+            return key.equals(TBM_TAGGED);
         }
 
         @Override
         public Set<Key<?>> getKeys() {
-            return Collections.singleton(IS_TBM_ENTITY);
+            return Collections.singleton(TBM_TAGGED);
         }
 
         @Override
         public Set<ImmutableValue<?>> getValues() {
-            return Collections.singleton(
-                    ImmutableDataCachingUtil.getValue(ImmutableValue.class,
-                            IS_TBM_ENTITY, Boolean.FALSE, this.tbmEntity));
+            return Collections
+                    .singleton(getValue(TBM_TAGGED).get().asImmutable());
         }
 
         @Override
-        public Optional<TBMEntityData> fill(DataHolder dataHolder,
+        public Optional<TBMTaggedData> fill(DataHolder dataHolder,
                 MergeFunction overlap) {
-            if (!dataHolder.supports(IS_TBM_ENTITY)) {
+            if (!dataHolder.supports(TBM_TAGGED)) {
                 return Optional.empty();
             }
-            TBMEntityData m = checkNotNull(overlap).merge(copy(),
+            TBMTaggedData m = checkNotNull(overlap).merge(copy(),
                     from(dataHolder.toContainer()).orElse(null));
-            return Optional.of(set(IS_TBM_ENTITY, m.get(IS_TBM_ENTITY).get()));
+            return Optional.of(set(TBM_TAGGED, m.get(TBM_TAGGED).get()));
         }
 
         @Override
-        public Optional<TBMEntityData> from(DataContainer container) {
-            set(IS_TBM_ENTITY, DataUtil.getData(container, IS_TBM_ENTITY));
+        public Optional<TBMTaggedData> from(DataContainer container) {
+            set(TBM_TAGGED, DataUtil.getData(container, TBM_TAGGED));
             return Optional.of(this);
         }
 
         @Override
-        public <E> TBMEntityData set(Key<? extends BaseValue<E>> key, E value) {
+        public <E> TBMTaggedData set(Key<? extends BaseValue<E>> key, E value) {
             checkArgument(supports(key),
                     "This data manipulator doesn't support the following key: "
                             + key.toString());
-            this.tbmEntity = (Boolean) value;
+            this.tbmTagged = (Boolean) value;
             return this;
         }
 
         @Override
-        public TBMEntityData copy() {
-            return new TBMEntityData(this.tbmEntity);
+        public TBMTaggedData copy() {
+            return new TBMTaggedData(this.tbmTagged);
         }
 
         @Override
-        public ImmutableTBMEntityData asImmutable() {
-            return ImmutableDataCachingUtil.getManipulator(
-                    ImmutableTBMEntityData.class, this.tbmEntity);
+        public ImmutableTBMTaggedData asImmutable() {
+            return this.tbmTagged ? ImmutableTBMTaggedData.TRUE
+                    : ImmutableTBMTaggedData.FALSE;
         }
 
     }
 
-    private static final class ImmutableTBMEntityData implements
-            ImmutableDataManipulator<ImmutableTBMEntityData, TBMEntityData> {
+    public static final class ImmutableTBMTaggedData implements
+            ImmutableDataManipulator<ImmutableTBMTaggedData, TBMTaggedData> {
 
-        private final Boolean tbmEntity;
+        private static final ImmutableTBMTaggedData TRUE;
+        private static final ImmutableTBMTaggedData FALSE;
+        private static final ImmutableValue<Boolean> VALUE_TRUE;
+        private static final ImmutableValue<Boolean> VALUE_FALSE;
+
+        static {
+            ValueFactory vF = TBMPlugin.getInstance().getGame().getRegistry()
+                    .getValueFactory();
+            VALUE_TRUE = vF.createValue(TBM_TAGGED, Boolean.TRUE, Boolean.FALSE)
+                    .asImmutable();
+            VALUE_FALSE =
+                    vF.createValue(TBM_TAGGED, Boolean.FALSE, Boolean.FALSE)
+                            .asImmutable();
+            TRUE = new ImmutableTBMTaggedData(Boolean.TRUE);
+            FALSE = new ImmutableTBMTaggedData(Boolean.FALSE);
+        }
+
+        private final Boolean tbmTagged;
         private final ImmutableValue<Boolean> value;
 
-        private ImmutableTBMEntityData() {
+        private ImmutableTBMTaggedData() {
             this(Boolean.FALSE);
         }
 
-        private ImmutableTBMEntityData(Boolean value) {
-            this.tbmEntity = value;
-            this.value = ImmutableDataCachingUtil.getValue(ImmutableValue.class,
-                    IS_TBM_ENTITY, Boolean.FALSE, value);
+        private ImmutableTBMTaggedData(Boolean value) {
+            this.tbmTagged = value;
+            this.value = value ? VALUE_TRUE : VALUE_FALSE;
         }
 
         @Override
-        public int compareTo(ImmutableTBMEntityData o) {
-            return this.tbmEntity.compareTo(o.tbmEntity);
+        public int compareTo(ImmutableTBMTaggedData o) {
+            return this.tbmTagged.compareTo(o.tbmTagged);
         }
 
         @Override
         public DataContainer toContainer() {
-            return new MemoryDataContainer().set(IS_TBM_ENTITY, this.tbmEntity);
+            return new MemoryDataContainer().set(TBM_TAGGED, this.tbmTagged);
         }
 
         @SuppressWarnings("unchecked")
         @Override
         public <E> Optional<E> get(Key<? extends BaseValue<E>> key) {
-            if (key.equals(IS_TBM_ENTITY)) {
-                return (Optional<E>) Optional.of(this.tbmEntity);
+            if (key.equals(TBM_TAGGED)) {
+                return (Optional<E>) Optional.of(this.tbmTagged);
             }
             return Optional.empty();
         }
@@ -166,7 +183,7 @@ public final class TBMKeys {
         @SuppressWarnings("unchecked")
         @Override
         public <E, V extends BaseValue<E>> Optional<V> getValue(Key<V> key) {
-            if (key.equals(IS_TBM_ENTITY)) {
+            if (key.equals(TBM_TAGGED)) {
                 return (Optional<V>) Optional.of(this.value);
             }
             return Optional.empty();
@@ -174,12 +191,12 @@ public final class TBMKeys {
 
         @Override
         public boolean supports(Key<?> key) {
-            return key.equals(IS_TBM_ENTITY);
+            return key.equals(TBM_TAGGED);
         }
 
         @Override
         public Set<Key<?>> getKeys() {
-            return Collections.singleton(IS_TBM_ENTITY);
+            return Collections.singleton(TBM_TAGGED);
         }
 
         @Override
@@ -188,7 +205,7 @@ public final class TBMKeys {
         }
 
         @Override
-        public <E> Optional<ImmutableTBMEntityData>
+        public <E> Optional<ImmutableTBMTaggedData>
                 with(Key<? extends BaseValue<E>> key, E value) {
             if (supports(key)) {
                 return Optional.of(asMutable().set(key, value).asImmutable());
@@ -197,41 +214,39 @@ public final class TBMKeys {
         }
 
         @Override
-        public TBMEntityData asMutable() {
-            return new TBMEntityData(this.tbmEntity);
+        public TBMTaggedData asMutable() {
+            return new TBMTaggedData(this.tbmTagged);
         }
 
     }
 
-    @SuppressWarnings("unchecked")
-    public static final Key<Value<Boolean>> IS_TBM_ENTITY =
-            KeyFactory.makeSingleKey(Boolean.class, Value.class,
-                    DataQuery.of("tbmEntity"));
+    public static final Key<Value<Boolean>> TBM_TAGGED = KeyFactory
+            .makeSingleKey(Boolean.class, Value.class, DataQuery.of("tbmTag"));
 
     public static void registerKeyStuff(Game game) {
-        game.getRegistry().getManipulatorRegistry().register(
-                TBMEntityData.class, ImmutableTBMEntityData.class,
-                new DataManipulatorBuilder<TBMEntityData, ImmutableTBMEntityData>() {
+        game.getManipulatorRegistry().register(TBMTaggedData.class,
+                ImmutableTBMTaggedData.class,
+                new DataManipulatorBuilder<TBMTaggedData, ImmutableTBMTaggedData>() {
 
                     @Override
-                    public Optional<TBMEntityData> build(DataView container)
+                    public Optional<TBMTaggedData> build(DataView container)
                             throws InvalidDataException {
-                        return container.get(IS_TBM_ENTITY.getQuery())
+                        return container.get(TBM_TAGGED.getQuery())
                                 .map(Boolean.class::cast)
-                                .map(TBMEntityData::new);
+                                .map(TBMTaggedData::new);
                     }
 
                     @Override
-                    public TBMEntityData create() {
-                        return new TBMEntityData();
+                    public TBMTaggedData create() {
+                        return new TBMTaggedData();
                     }
 
                     @Override
-                    public Optional<TBMEntityData>
+                    public Optional<TBMTaggedData>
                             createFrom(DataHolder dataHolder) {
-                        return dataHolder.get(IS_TBM_ENTITY)
+                        return dataHolder.get(TBM_TAGGED)
                                 .map(Boolean.class::cast)
-                                .map(TBMEntityData::new);
+                                .map(TBMTaggedData::new);
                     }
 
                 });

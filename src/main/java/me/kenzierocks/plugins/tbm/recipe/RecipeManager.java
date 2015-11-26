@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
 import org.spongepowered.api.item.ItemTypes;
@@ -14,7 +15,10 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.crafting.CraftingInventory;
 import org.spongepowered.api.item.inventory.type.GridInventory;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
+
+import me.kenzierocks.plugins.tbm.TBMPlugin;
 
 /**
  * Delicious.
@@ -25,10 +29,35 @@ public class RecipeManager {
 
     @Listener
     public void onChangeInventory(InteractInventoryEvent event) {
-        Inventory parent = event.getTargetInventory().parent().get();
+        Logger logger = TBMPlugin.getInstance().getLogger();
+        logger.info("I AM CHANGE INV " + event);
+        Inventory parent = event.getTargetInventory();
+        logger.info("Here's the type hierarchy");
+        Class<?> current = parent.getClass();
+        recursiveDetail(logger, current, 0);
         if (parent instanceof CraftingInventory) {
             CraftingInventory table = (CraftingInventory) parent;
             checkRecipe(table);
+        }
+    }
+
+    private void recursiveDetail(Logger logger, Class<?> current, int depth) {
+        if (current == null) {
+            return;
+        }
+        String indent = Strings.repeat("  ", depth);
+        logger.info(indent + current.getName());
+        recursiveIfaceDetail(logger, current, depth + 1);
+        recursiveDetail(logger, current.getSuperclass(), depth + 1);
+    }
+
+    private void recursiveIfaceDetail(Logger logger, Class<?> iface,
+            int depth) {
+        // don't print out the iface name
+        String indent = Strings.repeat("  ", depth);
+        for (Class<?> inner : iface.getInterfaces()) {
+            logger.info(indent + "|I|" + inner.getName());
+            recursiveIfaceDetail(logger, inner, depth + 1);
         }
     }
 

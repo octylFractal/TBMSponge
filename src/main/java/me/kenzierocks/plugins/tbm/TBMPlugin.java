@@ -32,6 +32,8 @@ import org.spongepowered.api.plugin.Plugin;
 
 import com.google.inject.Inject;
 
+import me.kenzierocks.plugins.tbm.recipe.RecipeManager;
+
 @Plugin(id = TBMPlugin.ID, name = TBMPlugin.NAME, version = TBMPlugin.VERSION)
 public class TBMPlugin {
 
@@ -64,9 +66,12 @@ public class TBMPlugin {
     @Listener
     public void onGamePreInitilization(GamePreInitializationEvent event) {
         this.logger.info("Loading " + NAME + " v" + VERSION);
-        this.logger.info("Loaded " + NAME + " v" + VERSION);
         this.game.getEventManager().registerListeners(this,
                 new EventHandler(this));
+        this.game.getEventManager().registerListeners(this,
+                new RecipeManager());
+        TBMKeys.registerKeyStuff(this.game);
+        this.logger.info("Loaded " + NAME + " v" + VERSION);
     }
 
 }
