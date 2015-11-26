@@ -6,6 +6,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.spongepowered.api.Game;
 import org.spongepowered.api.data.DataContainer;
@@ -20,7 +21,6 @@ import org.spongepowered.api.data.manipulator.DataManipulatorBuilder;
 import org.spongepowered.api.data.manipulator.ImmutableDataManipulator;
 import org.spongepowered.api.data.merge.MergeFunction;
 import org.spongepowered.api.data.value.BaseValue;
-import org.spongepowered.api.data.value.ValueFactory;
 import org.spongepowered.api.data.value.immutable.ImmutableValue;
 import org.spongepowered.api.data.value.mutable.Value;
 import org.spongepowered.api.service.persistence.InvalidDataException;
@@ -29,8 +29,66 @@ import me.kenzierocks.plugins.tbm.spongeabc.DataUtil;
 
 public final class TBMKeys {
 
-    private static final ValueFactory VALUE_FACTORY =
-            TBMPlugin.getInstance().getGame().getRegistry().getValueFactory();
+    private static final Function<Boolean, Value<Boolean>> TBM_TAGGED_VALUE_FUNC;
+
+    static {
+        class Val implements Value<Boolean> {
+
+            private Boolean val;
+
+            private Val(Boolean val) {
+                this.val = val;
+            }
+
+            @Override
+            public Boolean get() {
+                return this.val;
+            }
+
+            @Override
+            public boolean exists() {
+                return true;
+            }
+
+            @Override
+            public Boolean getDefault() {
+                return Boolean.FALSE;
+            }
+
+            @Override
+            public Optional<Boolean> getDirect() {
+                return Optional.of(this.val);
+            }
+
+            @Override
+            public Key<? extends BaseValue<Boolean>> getKey() {
+                return TBM_TAGGED;
+            }
+
+            @Override
+            public Value<Boolean> set(Boolean value) {
+                this.val = value;
+                return this;
+            }
+
+            @Override
+            public Value<Boolean>
+                    transform(Function<Boolean, Boolean> function) {
+                return set(function.apply(this.val));
+            }
+
+            @Override
+            public ImmutableValue<Boolean> asImmutable() {
+                return this.val ? ImmutableTBMTaggedData.VALUE_TRUE
+                        : ImmutableTBMTaggedData.VALUE_FALSE;
+            }
+
+        }
+        TBM_TAGGED_VALUE_FUNC = Val::new;
+    }
+
+    // private static final ValueFactory VALUE_FACTORY =
+    // TBMPlugin.getInstance().getGame().getRegistry().getValueFactory();
 
     public static final class TBMTaggedData
             implements DataManipulator<TBMTaggedData, ImmutableTBMTaggedData> {
@@ -68,8 +126,8 @@ public final class TBMKeys {
         @Override
         public <E, V extends BaseValue<E>> Optional<V> getValue(Key<V> key) {
             if (key.equals(TBM_TAGGED)) {
-                return (Optional<V>) Optional.of(VALUE_FACTORY.createValue(
-                        TBM_TAGGED, this.tbmTagged, Boolean.FALSE));
+                return (Optional<V>) Optional
+                        .of(TBM_TAGGED_VALUE_FUNC.apply(this.tbmTagged));
             }
             return Optional.empty();
         }
@@ -138,13 +196,68 @@ public final class TBMKeys {
         private static final ImmutableValue<Boolean> VALUE_FALSE;
 
         static {
-            ValueFactory vF = TBMPlugin.getInstance().getGame().getRegistry()
-                    .getValueFactory();
-            VALUE_TRUE = vF.createValue(TBM_TAGGED, Boolean.TRUE, Boolean.FALSE)
-                    .asImmutable();
-            VALUE_FALSE =
-                    vF.createValue(TBM_TAGGED, Boolean.FALSE, Boolean.FALSE)
-                            .asImmutable();
+            // lol there's no value factory....
+            // ValueFactory vF =
+            // TBMPlugin.getInstance().getGame().getRegistry().getValueFactory();
+            // VALUE_TRUE = vF.createValue(TBM_TAGGED, Boolean.TRUE,
+            // Boolean.FALSE)
+            // .asImmutable();
+            // VALUE_FALSE =
+            // vF.createValue(TBM_TAGGED, Boolean.FALSE, Boolean.FALSE)
+            // .asImmutable();
+
+            class ImVal implements ImmutableValue<Boolean> {
+
+                private final Boolean val;
+
+                private ImVal(Boolean val) {
+                    this.val = val;
+                }
+
+                @Override
+                public Boolean get() {
+                    return this.val;
+                }
+
+                @Override
+                public boolean exists() {
+                    return true;
+                }
+
+                @Override
+                public Boolean getDefault() {
+                    return Boolean.TRUE;
+                }
+
+                @Override
+                public Optional<Boolean> getDirect() {
+                    return Optional.of(this.val);
+                }
+
+                @Override
+                public Key<? extends BaseValue<Boolean>> getKey() {
+                    return TBM_TAGGED;
+                }
+
+                @Override
+                public ImmutableValue<Boolean> with(Boolean value) {
+                    return value ? VALUE_TRUE : VALUE_FALSE;
+                }
+
+                @Override
+                public ImmutableValue<Boolean>
+                        transform(Function<Boolean, Boolean> function) {
+                    return with(function.apply(this.val));
+                }
+
+                @Override
+                public Value<Boolean> asMutable() {
+                    return TBM_TAGGED_VALUE_FUNC.apply(this.val);
+                }
+
+            }
+            VALUE_TRUE = new ImVal(Boolean.TRUE);
+            VALUE_FALSE = new ImVal(Boolean.FALSE);
             TRUE = new ImmutableTBMTaggedData(Boolean.TRUE);
             FALSE = new ImmutableTBMTaggedData(Boolean.FALSE);
         }
