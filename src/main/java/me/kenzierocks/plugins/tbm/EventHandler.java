@@ -16,6 +16,8 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.entity.spawn.SpawnCause;
+import org.spongepowered.api.event.cause.entity.spawn.SpawnTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 
 public class EventHandler {
@@ -57,14 +59,10 @@ public class EventHandler {
         if (DataManager.isTBMBlockStack(used)) {
             // convert the block to an entity, spawn it, cancel the event.
             Entity blockEntity = DataManager.covertBlock(t.getFinal());
-            event.getTargetWorld().spawnEntity(blockEntity,
-                    Cause.of(new Object() {
-
-                        @Override
-                        public String toString() {
-                            return "NONE OF MY CAUSES ARE BUILDABLE ;_;";
-                        }
-                    }));
+            // uh sure. correlation implies causation.
+            event.getTargetWorld().spawnEntity(blockEntity, Cause.of(
+                    this.plugin,
+                    SpawnCause.builder().type(SpawnTypes.PLUGIN).build()));
             event.setCancelled(true);
         }
     }

@@ -4,12 +4,19 @@ buildscript {
         maven {
             url = 'https://plugins.gradle.org/m2/'
         }
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
     }
 
     dependencies {
         classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.12.0'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.0-SNAPSHOT'
     }
 }
+apply plugin: 'net.minecraftforge.gradle.forge'
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
@@ -25,16 +32,35 @@ targetCompatibility = '1.8'
 archivesBaseName = project.name.toLowerCase()
 version = "${project.version}-r${project.apiVersion.split("-")[0]}"
 
+minecraft {
+    version = "1.8-${project.forgeExtVersion}"
+    if (file('../run').exists()) {
+        runDir = "../run"
+    } else {
+        runDir = "run"
+    }
+    mappings "${project.mcpMappings}"
+}
+
 repositories {
     mavenCentral()
     maven {
         name = 'sponge'
         url = 'http://repo.spongepowered.org/maven'
     }
+    maven {
+        name = 'forge'
+        url = 'http://files.minecraftforge.net/maven'
+    }
+    maven {
+        name = 'weirdspongelocal'
+        url = 'file:///Users/kenzietogami/Documents/_sponge'
+    }
 }
 
 dependencies {
     compile "org.spongepowered:spongeapi:${project.apiVersion}"
+    //compile "org.spongepowered:spongeforge:1.8-${project.forgeVersion}-${project.apiVersion.split("-")[0]}-${project.spongeVersion}"
 }
 
 configure([compileJava, compileTestJava]) {
@@ -65,6 +91,7 @@ javadoc {
 }
 
 // tokens
+// no I will not use the minecraft { replace } stuff, I plan to switch to API when possible
 import org.apache.tools.ant.filters.ReplaceTokens
 
 task detokenizeSource(type: Copy) {
