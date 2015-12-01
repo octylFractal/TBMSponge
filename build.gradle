@@ -60,7 +60,7 @@ repositories {
 
 dependencies {
     compile "org.spongepowered:spongeapi:${project.apiVersion}"
-    //compile "org.spongepowered:spongeforge:1.8-${project.forgeVersion}-${project.apiVersion.split("-")[0]}-${project.spongeVersion}"
+    compile "org.spongepowered:spongeforge:1.8-${project.forgeVersion}-${project.apiVersion.split("-")[0]}-${project.spongeVersion}"
 }
 
 configure([compileJava, compileTestJava]) {
