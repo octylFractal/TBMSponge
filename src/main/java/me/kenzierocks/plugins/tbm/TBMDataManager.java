@@ -5,11 +5,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.DataHolder;
+import org.spongepowered.api.data.DataManager;
 import org.spongepowered.api.data.DataTransactionResult;
+import org.spongepowered.api.data.MemoryDataContainer;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.manipulator.DataManipulatorRegistry;
 import org.spongepowered.api.data.manipulator.mutable.item.EnchantmentData;
 import org.spongepowered.api.data.meta.ItemEnchantment;
 import org.spongepowered.api.entity.Entity;
@@ -20,12 +22,13 @@ import org.spongepowered.api.item.Enchantments;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.world.Location;
+import org.spongepowered.common.data.manipulator.mutable.item.SpongeEnchantmentData;
 
 import com.google.common.collect.ImmutableList;
 
 import me.kenzierocks.plugins.tbm.TBMKeys.TBMTaggedData;
 
-public class DataManager {
+public class TBMDataManager {
 
     private static final ItemStack WAND_THING_STACK;
     private static final ItemStack DRILL_STACK;
@@ -37,18 +40,24 @@ public class DataManager {
 
     static {
         // Generate data
-        DataManipulatorRegistry manipulatorRegistry =
-                TBMPlugin.getInstance().getGame().getManipulatorRegistry();
-        TBMTaggedData tbmData =
-                manipulatorRegistry.getBuilder(TBMTaggedData.class).get()
-                        .create().set(TBMKeys.TBM_TAGGED, Boolean.TRUE);
-        EnchantmentData enchanting = manipulatorRegistry
-                .getBuilder(EnchantmentData.class).get().create()
+        DataManager dataManager = Sponge.getDataManager();
+        TBMTaggedData tbmData = dataManager.getBuilder(TBMTaggedData.class)
+                .get().build(new MemoryDataContainer().set(TBMKeys.TBM_TAGGED,
+                        Boolean.TRUE))
+                .get();
+        // Build stacks
+        Supplier<ItemStack.Builder> builder = () -> Sponge.getRegistry()
+                .createBuilder(ItemStack.Builder.class);
+        EnchantmentData enchanting = new SpongeEnchantmentData()
                 .set(Keys.ITEM_ENCHANTMENTS, ImmutableList
                         .of(new ItemEnchantment(Enchantments.FORTUNE, 100)));
-        // Build stacks
-        Supplier<ItemStack.Builder> builder = () -> TBMPlugin.getInstance()
-                .getGame().getRegistry().createBuilder(ItemStack.Builder.class);
+        // dataManager.getManipulatorBuilder(EnchantmentData.class)
+        // .get()
+        // .build(new MemoryDataContainer()
+        // .set(Keys.ITEM_ENCHANTMENTS,
+        // ImmutableList.of(new ItemEnchantment(
+        // Enchantments.FORTUNE, 100))))
+        // .get();
         Function<ItemStack.Builder, ItemStack.Builder> tbmify =
                 b -> b.itemData(tbmData);
         WAND_THING_STACK =

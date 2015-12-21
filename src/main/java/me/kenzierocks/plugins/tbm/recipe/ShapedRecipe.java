@@ -3,9 +3,9 @@ package me.kenzierocks.plugins.tbm.recipe;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
+import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 
 public interface ShapedRecipe extends Recipe {
@@ -15,11 +15,14 @@ public interface ShapedRecipe extends Recipe {
     int getCols();
 
     ItemStack getStackAt(int r, int c);
-    
+
     ItemStack translateLayoutToOutput(ItemStack[][] asLayout);
 
     /**
-     * Check if the given ItemStack matches at the given row and column.
+     * Check if the given ItemStack matches at the given row and column. Any
+     * stacks that contain {@link ItemTypes#NONE} are equivalent to {@code null}
+     * , e.g. if {@code stack} is {@code null}, and the recipe has a stack of
+     * type {@code NONE} at the position, then this method returns {@code true}.
      * 
      * @param r
      *            - row
@@ -28,6 +31,10 @@ public interface ShapedRecipe extends Recipe {
      * @return {@code true} if it matches, otherwise {@code false}
      */
     default boolean matches(ItemStack stack, int r, int c) {
+        if (stack == null) {
+            // special case
+            return getStackAt(r, c).getItem().equals(ItemTypes.NONE);
+        }
         return stack.equals(getStackAt(r, c));
     }
 
@@ -44,9 +51,8 @@ public interface ShapedRecipe extends Recipe {
         }
         for (int r = 0; r < getRows(); r++) {
             for (int c = 0; c < getCols(); c++) {
-                ItemStack recipe = getStackAt(r, c);
                 ItemStack user = asLayout[r][c];
-                if (!Objects.equals(recipe, user)) {
+                if (!matches(user, r, c)) {
                     return Optional.empty();
                 }
             }
@@ -57,7 +63,7 @@ public interface ShapedRecipe extends Recipe {
     interface SingleOutput extends ShapedRecipe {
 
         ItemStack getOutput();
-        
+
         @Override
         default ItemStack translateLayoutToOutput(ItemStack[][] asLayout) {
             return getOutput();

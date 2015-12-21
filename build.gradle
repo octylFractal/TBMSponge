@@ -40,10 +40,17 @@ minecraft {
         runDir = "run"
     }
     mappings "${project.mcpMappings}"
+    useDepAts = true
 }
+// did u know that AT checking is bad
+[tasks.deobfMcMCP, tasks.deobfMcSRG].each { it.failOnAtError = false }
 
 repositories {
     mavenCentral()
+    maven {
+        name = 'weirdspongelocal'
+        url = 'file:///Users/kenzietogami/Documents/_sponge'
+    }
     maven {
         name = 'sponge'
         url = 'http://repo.spongepowered.org/maven'
@@ -51,10 +58,6 @@ repositories {
     maven {
         name = 'forge'
         url = 'http://files.minecraftforge.net/maven'
-    }
-    maven {
-        name = 'weirdspongelocal'
-        url = 'file:///Users/kenzietogami/Documents/_sponge'
     }
 }
 

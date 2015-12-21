@@ -30,11 +30,11 @@ public class RecipeManager {
     @Listener
     public void onChangeInventory(InteractInventoryEvent event) {
         Logger logger = TBMPlugin.getInstance().getLogger();
-        logger.info("I AM CHANGE INV " + event);
+        // logger.info("I AM CHANGE INV " + event);
         Inventory parent = event.getTargetInventory();
-        logger.info("Here's the type hierarchy");
+        // logger.info("Here's the type hierarchy");
         Class<?> current = parent.getClass();
-        recursiveDetail(logger, current, 0);
+        // recursiveDetail(logger, current, 0);
         if (parent instanceof CraftingInventory) {
             CraftingInventory table = (CraftingInventory) parent;
             checkRecipe(table);

@@ -6,7 +6,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+
+import me.kenzierocks.plugins.tbm.Shortcuts;
 
 public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
 
@@ -31,6 +34,7 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
 
         {
             checkLayout();
+            link(' ', Shortcuts.singleStackOfItem(ItemTypes.NONE));
         }
 
         protected abstract ItemStack[][] createLayout();

@@ -25,8 +25,9 @@
 package me.kenzierocks.plugins.tbm;
 
 import org.slf4j.Logger;
-import org.spongepowered.api.Game;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.Plugin;
 
@@ -49,7 +50,7 @@ public class TBMPlugin {
     @Inject
     private Logger logger;
     @Inject
-    private Game game;
+    private RecipeManager recipeManager;
 
     {
         INSTANCE = this;
@@ -59,19 +60,20 @@ public class TBMPlugin {
         return this.logger;
     }
 
-    public Game getGame() {
-        return this.game;
+    @Listener
+    public void onGamePreInitialization(GamePreInitializationEvent event) {
+        this.logger.info("Loading " + NAME + " v" + VERSION);
+        Sponge.getEventManager().registerListeners(this,
+                new EventHandler(this));
+        this.recipeManager = new RecipeManager();
+        Sponge.getEventManager().registerListeners(this, this.recipeManager);
+        TBMKeys.registerKeyStuff();
+        this.logger.info("Loaded " + NAME + " v" + VERSION);
     }
 
     @Listener
-    public void onGamePreInitilization(GamePreInitializationEvent event) {
-        this.logger.info("Loading " + NAME + " v" + VERSION);
-        this.game.getEventManager().registerListeners(this,
-                new EventHandler(this));
-        this.game.getEventManager().registerListeners(this,
-                new RecipeManager());
-        TBMKeys.registerKeyStuff(this.game);
-        this.logger.info("Loaded " + NAME + " v" + VERSION);
+    public void onGameInitialization(GameInitializationEvent event) {
+        TBMRecipes.initRecipes(this.recipeManager);
     }
 
 }
