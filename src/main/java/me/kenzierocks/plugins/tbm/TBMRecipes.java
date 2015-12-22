@@ -72,6 +72,16 @@ public final class TBMRecipes {
                 .link('d', Shortcuts.singleStackOfItem(ItemTypes.DISPENSER))
                 .row1('i', 'i', 'i').row2('i', 'd', 'i').row3('i', 'i', 'i')
                 .build());
+        // WAND THING (secret)
+        manager.addRecipe(
+                DefaultShapedRecipe.Box3By3Builder
+                        .start(TBMDataManager.getWandThingStack())
+                        .link('s', Shortcuts.singleStackOfItem(ItemTypes.STICK))
+                        .link('r',
+                                Shortcuts.singleStackOfItem(
+                                        ItemTypes.ACTIVATOR_RAIL))
+                .row1('s', 'r', 's').row2('s', 'r', 's').row3('s', 'r', 's')
+                .build());
         Shortcuts.log().info("Loaded recipes");
     }
 

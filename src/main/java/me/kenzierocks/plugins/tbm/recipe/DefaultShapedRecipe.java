@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
 import me.kenzierocks.plugins.tbm.Shortcuts;
 
@@ -28,23 +29,23 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
     private static abstract class MixinBoxBuilder<SUBTYPE extends MixinBoxBuilder<SUBTYPE>>
             implements BoxBuilder<SUBTYPE> {
 
-        protected final Map<Character, ItemStack> links = new HashMap<>();
-        protected final ItemStack[][] layout = createLayout();
-        protected ItemStack result;
+        protected final Map<Character, ItemStackSnapshot> links = new HashMap<>();
+        protected final ItemStackSnapshot[][] layout = createLayout();
+        protected ItemStackSnapshot result;
 
         {
             checkLayout();
             link(' ', Shortcuts.singleStackOfItem(ItemTypes.NONE));
         }
 
-        protected abstract ItemStack[][] createLayout();
+        protected abstract ItemStackSnapshot[][] createLayout();
 
         private void checkLayout() {
             checkNotNull(this.layout, "layout cannot be null");
             checkArgument(this.layout.length != 0, "Cannot have 0 rows");
             int cols = this.layout[0].length;
             checkArgument(cols != 0, "Cannot have 0 columns");
-            for (ItemStack[] row : this.layout) {
+            for (ItemStackSnapshot[] row : this.layout) {
                 checkArgument(cols == row.length, "non-rectangular array");
             }
         }
@@ -56,14 +57,14 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
         @Override
         public SUBTYPE link(char character, ItemStack stack) {
             checkNotNull(stack, "linked stack cannot be null");
-            this.links.put(character, stack);
+            this.links.put(character, stack.createSnapshot());
             return $this();
         }
 
         @Override
         public SUBTYPE result(ItemStack result) {
             checkNotNull(result, "result cannot be null");
-            this.result = result;
+            this.result = result.createSnapshot();
             return $this();
         }
 
@@ -79,7 +80,7 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
         public SUBTYPE duplicate() {
             SUBTYPE n = createNew();
             n.links.putAll(this.links);
-            n.result(this.result);
+            n.result(this.result.createStack());
             for (int i = 0; i < this.layout.length; i++) {
                 n.layout[i] = this.layout[i];
             }
@@ -99,22 +100,22 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
         }
 
         public Box2By2Builder row1(char c1, char c2) {
-            ItemStack[] row1 = this.layout[0];
+            ItemStackSnapshot[] row1 = this.layout[0];
             row1[0] = this.links.get(c1);
             row1[1] = this.links.get(c2);
             return this;
         }
 
         public Box2By2Builder row2(char c1, char c2) {
-            ItemStack[] row2 = this.layout[1];
+            ItemStackSnapshot[] row2 = this.layout[1];
             row2[0] = this.links.get(c1);
             row2[1] = this.links.get(c2);
             return this;
         }
 
         @Override
-        protected ItemStack[][] createLayout() {
-            return new ItemStack[2][2];
+        protected ItemStackSnapshot[][] createLayout() {
+            return new ItemStackSnapshot[2][2];
         }
 
         @Override
@@ -140,7 +141,7 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
         }
 
         public Box3By3Builder row1(char c1, char c2, char c3) {
-            ItemStack[] row1 = this.layout[0];
+            ItemStackSnapshot[] row1 = this.layout[0];
             row1[0] = this.links.get(c1);
             row1[1] = this.links.get(c2);
             row1[2] = this.links.get(c3);
@@ -148,7 +149,7 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
         }
 
         public Box3By3Builder row2(char c1, char c2, char c3) {
-            ItemStack[] row2 = this.layout[1];
+            ItemStackSnapshot[] row2 = this.layout[1];
             row2[0] = this.links.get(c1);
             row2[1] = this.links.get(c2);
             row2[2] = this.links.get(c3);
@@ -156,7 +157,7 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
         }
 
         public Box3By3Builder row3(char c1, char c2, char c3) {
-            ItemStack[] row3 = this.layout[2];
+            ItemStackSnapshot[] row3 = this.layout[2];
             row3[0] = this.links.get(c1);
             row3[1] = this.links.get(c2);
             row3[2] = this.links.get(c3);
@@ -164,8 +165,8 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
         }
 
         @Override
-        protected ItemStack[][] createLayout() {
-            return new ItemStack[3][3];
+        protected ItemStackSnapshot[][] createLayout() {
+            return new ItemStackSnapshot[3][3];
         }
 
         @Override
@@ -180,12 +181,12 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
 
     }
 
-    private final ItemStack[][] layout;
-    private final ItemStack result;
+    private final ItemStackSnapshot[][] layout;
+    private final ItemStackSnapshot result;
     private final transient int rows;
     private final transient int cols;
 
-    private DefaultShapedRecipe(ItemStack[][] layout, ItemStack result) {
+    private DefaultShapedRecipe(ItemStackSnapshot[][] layout, ItemStackSnapshot result) {
         this.layout = layout;
         this.result = result;
         this.rows = this.layout.length;
@@ -204,11 +205,11 @@ public final class DefaultShapedRecipe implements ShapedRecipe.SingleOutput {
 
     @Override
     public ItemStack getStackAt(int r, int c) {
-        return this.layout[r][c];
+        return this.layout[r][c].createStack();
     }
 
     @Override
-    public ItemStack getOutput() {
+    public ItemStackSnapshot getOutput() {
         return this.result;
     }
 

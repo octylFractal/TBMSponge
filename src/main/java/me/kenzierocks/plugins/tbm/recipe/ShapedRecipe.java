@@ -7,6 +7,8 @@ import java.util.Optional;
 
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackComparators;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
 public interface ShapedRecipe extends Recipe {
 
@@ -35,7 +37,7 @@ public interface ShapedRecipe extends Recipe {
             // special case
             return getStackAt(r, c).getItem().equals(ItemTypes.NONE);
         }
-        return stack.equals(getStackAt(r, c));
+        return ItemStackComparators.ALL.compare(stack, getStackAt(r, c)) == 0;
     }
 
     @Override
@@ -43,10 +45,10 @@ public interface ShapedRecipe extends Recipe {
             List<ItemStack> asList) {
         checkState(getRows() > 0, "cannot have 0 rows");
         checkState(getCols() > 0, "cannot have 0 columns");
-        if (asLayout.length <= getRows() || asLayout.length < 1) {
+        if (asLayout.length < getRows() || asLayout.length < 1) {
             return Optional.empty();
         }
-        if (asLayout[0].length <= getCols()) {
+        if (asLayout[0].length < getCols()) {
             return Optional.empty();
         }
         for (int r = 0; r < getRows(); r++) {
@@ -62,11 +64,11 @@ public interface ShapedRecipe extends Recipe {
 
     interface SingleOutput extends ShapedRecipe {
 
-        ItemStack getOutput();
+        ItemStackSnapshot getOutput();
 
         @Override
         default ItemStack translateLayoutToOutput(ItemStack[][] asLayout) {
-            return getOutput();
+            return getOutput().createStack();
         }
 
     }

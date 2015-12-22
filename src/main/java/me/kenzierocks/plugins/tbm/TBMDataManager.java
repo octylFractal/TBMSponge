@@ -13,6 +13,7 @@ import org.spongepowered.api.data.DataTransactionResult;
 import org.spongepowered.api.data.MemoryDataContainer;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.manipulator.mutable.item.EnchantmentData;
+import org.spongepowered.api.data.manipulator.mutable.item.LoreData;
 import org.spongepowered.api.data.meta.ItemEnchantment;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityTypes;
@@ -21,8 +22,9 @@ import org.spongepowered.api.entity.living.ArmorStand;
 import org.spongepowered.api.item.Enchantments;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackComparators;
+import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.world.Location;
-import org.spongepowered.common.data.manipulator.mutable.item.SpongeEnchantmentData;
 
 import com.google.common.collect.ImmutableList;
 
@@ -48,39 +50,34 @@ public class TBMDataManager {
         // Build stacks
         Supplier<ItemStack.Builder> builder = () -> Sponge.getRegistry()
                 .createBuilder(ItemStack.Builder.class);
-        EnchantmentData enchanting = new SpongeEnchantmentData()
-                .set(Keys.ITEM_ENCHANTMENTS, ImmutableList
-                        .of(new ItemEnchantment(Enchantments.FORTUNE, 100)));
-        // dataManager.getManipulatorBuilder(EnchantmentData.class)
-        // .get()
-        // .build(new MemoryDataContainer()
-        // .set(Keys.ITEM_ENCHANTMENTS,
-        // ImmutableList.of(new ItemEnchantment(
-        // Enchantments.FORTUNE, 100))))
-        // .get();
+        Function<String, LoreData> loreMaker = s -> dataManager
+                .getManipulatorBuilder(LoreData.class).get().create()
+                .set(Keys.ITEM_LORE, ImmutableList.of(Texts.of(s)));
+        EnchantmentData enchanting =
+                dataManager.getManipulatorBuilder(EnchantmentData.class).get()
+                        .build(new MemoryDataContainer()
+                                .set(Keys.ITEM_ENCHANTMENTS,
+                                        ImmutableList.of(new ItemEnchantment(
+                                                Enchantments.FORTUNE, 100))))
+                .get();
         Function<ItemStack.Builder, ItemStack.Builder> tbmify =
                 b -> b.itemData(tbmData);
-        WAND_THING_STACK =
-                tbmify.apply(builder.get().itemType(ItemTypes.GOLDEN_PICKAXE)
-                        .itemData(enchanting).quantity(1)).build();
-        DRILL_STACK = tbmify
-                .apply(builder.get().itemType(ItemTypes.DISPENSER).quantity(1))
-                .build();
-        CPU_STACK = tbmify.apply(
-                builder.get().itemType(ItemTypes.REDSTONE_LAMP).quantity(1))
-                .build();
-        ENGINE_STACK = tbmify
-                .apply(builder.get().itemType(ItemTypes.DISPENSER).quantity(1))
-                .build();
-        CARGO_STACK = tbmify
-                .apply(builder.get().itemType(ItemTypes.DISPENSER).quantity(1))
-                .build();
-        EJECTOR_STACK = tbmify
-                .apply(builder.get().itemType(ItemTypes.DROPPER).quantity(1))
-                .build();
-        FILLER_STACK = tbmify.apply(
-                builder.get().itemType(ItemTypes.CRAFTING_TABLE).quantity(1))
-                .build();
+        WAND_THING_STACK = tbmify.apply(builder.get()
+                .itemType(ItemTypes.GOLDEN_PICKAXE).itemData(enchanting)
+                .itemData(loreMaker.apply("Wand")).quantity(1)).build();
+        DRILL_STACK = tbmify.apply(builder.get().itemType(ItemTypes.IRON_BARS)
+                .itemData(loreMaker.apply("Drill")).quantity(1)).build();
+        CPU_STACK = tbmify.apply(builder.get().itemType(ItemTypes.REDSTONE_LAMP)
+                .itemData(loreMaker.apply("CPU")).quantity(1)).build();
+        ENGINE_STACK = tbmify.apply(builder.get().itemType(ItemTypes.STONE)
+                .itemData(loreMaker.apply("Engine")).quantity(1)).build();
+        CARGO_STACK = tbmify.apply(builder.get().itemType(ItemTypes.DISPENSER)
+                .itemData(loreMaker.apply("Cargo")).quantity(1)).build();
+        EJECTOR_STACK = tbmify.apply(builder.get().itemType(ItemTypes.DROPPER)
+                .itemData(loreMaker.apply("Ejector")).quantity(1)).build();
+        FILLER_STACK =
+                tbmify.apply(builder.get().itemType(ItemTypes.CRAFTING_TABLE)
+                        .itemData(loreMaker.apply("Filler")).quantity(1)).build();
     }
 
     private static boolean itemStacksEqualIgnoringSize(ItemStack a,
@@ -92,7 +89,7 @@ public class TBMDataManager {
         ItemStack bZero = b.copy();
         bZero.setQuantity(0);
         // Should work decently.
-        return aZero.equals(bZero);
+        return ItemStackComparators.ALL.compare(aZero, bZero) == 0;
     }
 
     public static ItemStack getWandThingStack() {

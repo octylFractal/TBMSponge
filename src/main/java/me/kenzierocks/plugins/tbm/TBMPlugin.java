@@ -24,16 +24,27 @@
  */
 package me.kenzierocks.plugins.tbm;
 
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.state.GameInitializationEvent;
+import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.text.Texts;
 
 import com.google.inject.Inject;
 
 import me.kenzierocks.plugins.tbm.recipe.RecipeManager;
+import net.minecraft.item.ItemStack;
 
 @Plugin(id = TBMPlugin.ID, name = TBMPlugin.NAME, version = TBMPlugin.VERSION)
 public class TBMPlugin {
@@ -68,11 +79,30 @@ public class TBMPlugin {
         this.recipeManager = new RecipeManager();
         Sponge.getEventManager().registerListeners(this, this.recipeManager);
         TBMKeys.registerKeyStuff();
+        // debug commands
+        Sponge.getCommandDispatcher().register(this,
+                CommandSpec.builder().executor(new CommandExecutor() {
+
+                    @Override
+                    public CommandResult execute(CommandSource src,
+                            CommandContext args) throws CommandException {
+                        if (src instanceof Player) {
+                            String jsonified = ((Player) src).getItemInHand()
+                                    .map(item -> ((ItemStack) item)
+                                            .getTagCompound())
+                                    .filter(Objects::nonNull)
+                                    .map(String::valueOf).orElse("No NBT");
+                            src.sendMessage(Texts.of(jsonified));
+                        }
+                        return CommandResult.empty();
+                    }
+                }).build(), "itemdata");
+        // end DC
         this.logger.info("Loaded " + NAME + " v" + VERSION);
     }
 
     @Listener
-    public void onGameInitialization(GameInitializationEvent event) {
+    public void onGameInitialization(GamePostInitializationEvent event) {
         TBMRecipes.initRecipes(this.recipeManager);
     }
 
