@@ -39,6 +39,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.scheduler.SpongeExecutorService;
 import org.spongepowered.api.text.Texts;
 
 import com.google.inject.Inject;
@@ -67,8 +68,17 @@ public class TBMPlugin {
         INSTANCE = this;
     }
 
+    private SpongeExecutorService executor;
+
     public Logger getLogger() {
         return this.logger;
+    }
+
+    public SpongeExecutorService getExecutor() {
+        if (this.executor == null) {
+            this.executor = Sponge.getScheduler().createSyncExecutor(this);
+        }
+        return this.executor;
     }
 
     @Listener

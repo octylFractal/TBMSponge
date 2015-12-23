@@ -80,7 +80,7 @@ public class TBMDataManager {
                         .itemData(loreMaker.apply("Filler")).quantity(1)).build();
     }
 
-    private static boolean itemStacksEqualIgnoringSize(ItemStack a,
+    public static boolean itemStacksEqualIgnoringSize(ItemStack a,
             ItemStack b) {
         checkNotNull(a);
         checkNotNull(b);
