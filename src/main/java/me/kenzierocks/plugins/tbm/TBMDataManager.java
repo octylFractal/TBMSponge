@@ -172,7 +172,7 @@ public class TBMDataManager {
         ArmorStand armorStand =
                 createCarrierArmorStand(target.getLocation().get());
         FallingBlock block = createBlockEntity(target);
-        armorStand.offer(Keys.PASSENGER, block);
+        armorStand.offer(Keys.PASSENGER, block.createSnapshot());
         // TODO: define if this returns the actual block or the stand
         return block;
     }

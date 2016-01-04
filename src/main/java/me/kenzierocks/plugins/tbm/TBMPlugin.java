@@ -90,7 +90,7 @@ public class TBMPlugin {
         Sponge.getEventManager().registerListeners(this, this.recipeManager);
         TBMKeys.registerKeyStuff();
         // debug commands
-        Sponge.getCommandDispatcher().register(this,
+        Sponge.getCommandManager().register(this,
                 CommandSpec.builder().executor(new CommandExecutor() {
 
                     @Override

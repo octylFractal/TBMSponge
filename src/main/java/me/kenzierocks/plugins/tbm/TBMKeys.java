@@ -6,6 +6,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.KeyFactory;
@@ -19,8 +20,20 @@ import org.spongepowered.api.util.persistence.InvalidDataException;
 
 public final class TBMKeys {
 
+    private interface TBMTaggedContentVersion extends DataSerializable {
+
+        int VERSION = 0;
+
+        @Override
+        default int getContentVersion() {
+            return VERSION;
+        }
+
+    }
+
     public static final class TBMTaggedData
-            extends AbstractBooleanData<TBMTaggedData, ImmutableTBMTaggedData> {
+            extends AbstractBooleanData<TBMTaggedData, ImmutableTBMTaggedData>
+            implements TBMTaggedContentVersion {
 
         public TBMTaggedData(boolean value) {
             super(value, TBM_TAGGED, false);
@@ -56,7 +69,8 @@ public final class TBMKeys {
     }
 
     public static final class ImmutableTBMTaggedData extends
-            AbstractImmutableBooleanData<ImmutableTBMTaggedData, TBMTaggedData> {
+            AbstractImmutableBooleanData<ImmutableTBMTaggedData, TBMTaggedData>
+            implements TBMTaggedContentVersion {
 
         private static final ImmutableTBMTaggedData TRUE =
                 new ImmutableTBMTaggedData(true);

@@ -23,8 +23,9 @@ public final class Shortcuts {
             new HashMap<>();
 
     public static ItemStack singleStackOfItem(ItemType type) {
-        return ofTypeCache.computeIfAbsent(type, t -> itemStackBuilder()
-                .itemType(type).quantity(1).build().createSnapshot())
+        return ofTypeCache
+                .computeIfAbsent(type,
+                        t -> ItemStack.of(type, 1).createSnapshot())
                 .createStack();
     }
 

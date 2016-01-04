@@ -80,13 +80,13 @@ public class RecipeManager {
     private void resendInv(Container container, Player player) {
         // This sets all the slots properly :3
         ((EntityPlayerMP) player).sendContainerToPlayer(container);
-//        for (Object o : container.inventorySlots) {
-//            System.err.println("Sending slot " + ((Slot) o).slotNumber + " = "
-//                    + ((Slot) o).getStack());
-//            ((EntityPlayerMP) player).playerNetServerHandler
-//                    .sendPacket(new S2FPacketSetSlot(container.windowId,
-//                            ((Slot) o).slotNumber, ((Slot) o).getStack()));
-//        }
+        // for (Object o : container.inventorySlots) {
+        // System.err.println("Sending slot " + ((Slot) o).slotNumber + " = "
+        // + ((Slot) o).getStack());
+        // ((EntityPlayerMP) player).playerNetServerHandler
+        // .sendPacket(new S2FPacketSetSlot(container.windowId,
+        // ((Slot) o).slotNumber, ((Slot) o).getStack()));
+        // }
     }
 
     private void doEverythingJustDoIt(List<SlotTransaction> transactions,
@@ -353,7 +353,8 @@ public class RecipeManager {
         int[] colCounts = new int[grid.getColumns()];
         for (int r = 0; r < grid.getRows(); r++) {
             for (int c = 0; c < grid.getColumns(); c++) {
-                ItemStack stack = grid.getSlot(r, c).get().peek();
+                ItemStack stack = grid.getSlot(r, c).get().peek()
+                        .orElse(Shortcuts.singleStackOfItem(ItemTypes.NONE));
                 if (!stack.getItem().equals(ItemTypes.NONE)) {
                     stacks[r][c] = stack;
                     rowCounts[r]++;
@@ -392,7 +393,8 @@ public class RecipeManager {
 
     private List<ItemStack> toList(CraftingInventory table) {
         return FluentIterable.from(table.getCraftingGrid())
-                .transform(slot -> slot.peek())
+                .transform(Inventory::peek).filter(Optional::isPresent)
+                .transform(Optional::get)
                 .filter(stack -> !stack.getItem().equals(ItemTypes.NONE))
                 .toList();
     }
